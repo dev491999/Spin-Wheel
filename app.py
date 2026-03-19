@@ -1,146 +1,162 @@
 import streamlit as st
 import streamlit.components.v1 as components
+import json
 
-# Prize list based on the provided design document
-# Note: "Better Luck Next Time" appears twice in the source to fill the wheel segments
+# Prize data extracted from the design document 
 prizes = [
-    "AIRPODS APPLE",            # Source 1
-    "BETTER LUCK NEXT TIME",    # Source 2, 3
-    "SPIN AGAIN",               # Source 4, 5
-    "IPAD APPLE",               # Source 6
-    "DOUBLE DOOR REFRIGERATOR", # Source 7, 8, 10
-    "SPLIT AIR CONDITIONER",    # Source 9, 10
-    "BETTER LUCK NEXT TIME"     # Source 11, 12
+    "AIRPODS APPLE",           # [cite: 1]
+    "BETTER LUCK NEXT TIME",   # [cite: 2, 3]
+    "SPIN AGAIN",              # [cite: 4]
+    "IPAD APPLE",              # [cite: 6]
+    "DOUBLE DOOR REFRIGERATOR",# [cite: 7, 8, 10]
+    "SPLIT AIR CONDITIONER",   # [cite: 9, 10]
+    "BETTER LUCK NEXT TIME"    # [cite: 11, 12]
 ]
 
-st.set_page_config(page_title="Premium Prize Wheel", layout="centered")
-st.title("🎡 Spin to Win!")
+st.set_page_config(page_title="Prize Wheel", layout="centered")
 
-# HTML, CSS, and JS for the animated wheel
+# Custom CSS for the Streamlit UI
+st.markdown("""
+    <style>
+    .stApp { background-color: #f4f7f6; }
+    .title { text-align: center; color: #2c3e50; font-family: 'Helvetica'; }
+    </style>
+    <h1 class="title">🎁 Corporate Prize Draw</h1>
+""", unsafe_content_html=True)
+
+# The HTML/JavaScript Component
 wheel_html = f"""
-<div class="main-container">
-    <div class="pointer">▼</div>
-    <div class="wheel-outer">
-        <div id="wheel" class="wheel"></div>
+<div id="container">
+    <div id="pointer">▼</div>
+    <div id="wheel-wrapper">
+        <canvas id="wheel" width="500" height="500"></canvas>
     </div>
-    <button id="spin-btn">SPIN WHEEL</button>
-    <h2 id="result-display"></h2>
+    <button id="spin-btn">SPIN TO WIN</button>
+    <div id="winner-display"></div>
 </div>
 
-<style>
-    .main-container {{
-        display: flex;
-        flex-direction: column;
-        align-items: center;
-        font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-    }}
-    .pointer {{
-        font-size: 50px;
-        color: #e74c3c;
-        line-height: 1;
-        z-index: 10;
-        margin-bottom: -20px;
-        text-shadow: 0 2px 5px rgba(0,0,0,0.2);
-    }}
-    .wheel-outer {{
-        width: 450px;
-        height: 450px;
-        border: 10px solid #333;
-        border-radius: 50%;
-        position: relative;
-        overflow: hidden;
-        box-shadow: 0 10px 25px rgba(0,0,0,0.3);
-    }}
-    .wheel {{
-        width: 100%;
-        height: 100%;
-        border-radius: 50%;
-        position: relative;
-        transition: transform 5s cubic-bezier(0.15, 0, 0.15, 1); /* Smooth deceleration */
-    }}
-    #spin-btn {{
-        margin-top: 30px;
-        padding: 15px 40px;
-        font-size: 20px;
-        font-weight: bold;
-        background-color: #2ecc71;
-        color: white;
-        border: none;
-        border-radius: 50px;
-        cursor: pointer;
-        transition: 0.3s;
-        box-shadow: 0 5px 15px rgba(46, 204, 113, 0.4);
-    }}
-    #spin-btn:hover {{ background-color: #27ae60; transform: scale(1.05); }}
-    #result-display {{ margin-top: 20px; color: #333; height: 40px; }}
-</style>
-
 <script>
-    const prizes = {prizes};
-    const wheel = document.getElementById('wheel');
-    const btn = document.getElementById('spin-btn');
-    const result = document.getElementById('result-display');
-    const numSegments = prizes.length;
-    const anglePerSegment = 360 / numSegments;
-    const colors = ['#f1c40f', '#e67e22', '#e74c3c', '#9b59b6', '#3498db', '#1abc9c', '#2ecc71'];
+const prizes = {json.dumps(prizes)};
+const colors = ["#E74C3C", "#3498DB", "#2ECC71", "#F1C40F", "#9B59B6", "#E67E22", "#1ABC9C"];
+const canvas = document.getElementById("wheel");
+const ctx = canvas.getContext("2d");
+const centerX = canvas.width / 2;
+const centerY = canvas.height / 2;
+const radius = canvas.width / 2 - 10;
 
-    // Draw the segments
-    let segmentsHtml = '';
-    for (let i = 0; i < numSegments; i++) {{
-        const rotation = i * anglePerSegment;
-        segmentsHtml += `
-            <div style="
-                position: absolute;
-                width: 50%;
-                height: 50%;
-                background-color: ${{colors[i % colors.length]}};
-                transform-origin: 100% 100%;
-                transform: rotate(${{rotation}}deg) skewY(${{90 - anglePerSegment}}deg);
-                border: 1px solid rgba(255,255,255,0.2);
-            "></div>
-            <div style="
-                position: absolute;
-                width: 50%;
-                height: 50%;
-                left: 50%;
-                top: 50%;
-                transform-origin: 0 0;
-                transform: rotate(${{rotation + anglePerSegment/2}}deg) translateY(-160px);
-                text-align: center;
-                color: white;
-                font-weight: bold;
-                font-size: 14px;
-                width: 120px;
-                margin-left: -60px;
-                text-shadow: 1px 1px 2px rgba(0,0,0,0.5);
-            ">${{prizes[i]}}</div>
-        `;
-    }}
-    wheel.innerHTML = segmentsHtml;
+let currentRotation = 0;
+let isSpinning = false;
 
-    let currentRotation = 0;
-
-    btn.addEventListener('click', () => {{
-        btn.disabled = true;
-        result.innerText = "Spinning...";
+function drawWheel() {{
+    const arcSize = (2 * Math.PI) / prizes.length;
+    
+    prizes.forEach((prize, i) => {{
+        const angle = i * arcSize + currentRotation;
         
-        // Random spin between 5 and 10 full rotations + random segment
-        const extraDegrees = Math.floor(Math.random() * 360);
-        const spinTotal = 1800 + extraDegrees; 
-        currentRotation += spinTotal;
-        
-        wheel.style.transform = `rotate(${{currentRotation}}deg)`;
+        // Draw Slice
+        ctx.beginPath();
+        ctx.fillStyle = colors[i % colors.length];
+        ctx.moveTo(centerX, centerY);
+        ctx.arc(centerX, centerY, radius, angle, angle + arcSize);
+        ctx.lineTo(centerX, centerY);
+        ctx.fill();
+        ctx.stroke();
 
-        setTimeout(() => {{
-            btn.disabled = false;
-            // Calculate winning index (Pointer is at top, which is 0 degrees in CSS)
-            // We need to account for the cumulative rotation
-            const actualDegree = currentRotation % 360;
-            const winningIndex = Math.floor((360 - actualDegree) / anglePerSegment) % numSegments;
-            result.innerText = "Winner: " + prizes[winningIndex];
-        }}, 5000);
+        // Draw Text
+        ctx.save();
+        ctx.translate(centerX, centerY);
+        ctx.rotate(angle + arcSize / 2);
+        ctx.textAlign = "right";
+        ctx.fillStyle = "white";
+        ctx.font = "bold 16px Arial";
+        // Split text into lines if too long
+        const words = prize.split(" ");
+        if(words.length > 2) {{
+            ctx.fillText(words.slice(0,2).join(" "), radius - 20, -10);
+            ctx.fillText(words.slice(2).join(" "), radius - 20, 10);
+        }} else {{
+            ctx.fillText(prize, radius - 20, 5);
+        }}
+        ctx.restore();
     }});
+}}
+
+document.getElementById("spin-btn").addEventListener("click", () => {{
+    if (isSpinning) return;
+    isSpinning = true;
+    document.getElementById("winner-display").innerText = "Good Luck...";
+    
+    const spinDuration = 5000;
+    const startTimestamp = performance.now();
+    const extraSpins = (Math.random() * 5 + 5) * 2 * Math.PI;
+    const initialRotation = currentRotation;
+
+    function animate(now) {{
+        const elapsed = now - startTimestamp;
+        const progress = Math.min(elapsed / spinDuration, 1);
+        
+        // Easing out function for smooth stop
+        const easeOut = 1 - Math.pow(1 - progress, 3);
+        currentRotation = initialRotation + (extraSpins * easeOut);
+        
+        drawWheel();
+
+        if (progress < 1) {{
+            requestAnimationFrame(animate);
+        }} else {{
+            isSpinning = false;
+            // Calculate winner based on top pointer (3*PI/2 position)
+            const totalSlices = prizes.length;
+            const arcSize = (2 * Math.PI) / totalSlices;
+            
+            // Normalize rotation to 0-2PI
+            const normalizedRotation = (currentRotation % (2 * Math.PI));
+            // Pointer is at top (1.5 * PI). We find which slice is at that angle.
+            const winningIndex = Math.floor(( (1.5 * Math.PI - normalizedRotation + 4 * Math.PI) % (2 * Math.PI) ) / arcSize);
+            
+            document.getElementById("winner-display").innerText = "WINNER: " + prizes[winningIndex];
+        }}
+    }}
+    requestAnimationFrame(animate);
+}});
+
+drawWheel();
 </script>
+
+<style>
+#container {{ display: flex; flex-direction: column; align-items: center; padding: 20px; }}
+#wheel-wrapper {{ position: relative; border: 8px solid #2c3e50; border-radius: 50%; box-shadow: 0 10px 30px rgba(0,0,0,0.3); }}
+#pointer {{ 
+    font-size: 40px; 
+    color: #e74c3c; 
+    position: absolute; 
+    top: -35px; 
+    left: 50%; 
+    transform: translateX(-50%); 
+    z-index: 100;
+    text-shadow: 0 2px 5px rgba(0,0,0,0.5);
+}}
+#spin-btn {{
+    margin-top: 30px;
+    padding: 15px 40px;
+    font-size: 24px;
+    font-weight: bold;
+    background: #2ecc71;
+    color: white;
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+    box-shadow: 0 4px #27ae60;
+}}
+#spin-btn:active {{ transform: translateY(4px); box-shadow: none; }}
+#winner-display {{
+    margin-top: 20px;
+    font-size: 28px;
+    font-weight: bold;
+    color: #2c3e50;
+    height: 40px;
+}}
+</style>
 """
 
-components.html(wheel_html, height=700)
+components.html(wheel_html, height=750)
