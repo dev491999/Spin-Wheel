@@ -342,3 +342,4 @@ drawWheel(rotation);
 """
 
 components.html(wheel_html, height=900)
+
