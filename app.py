@@ -291,14 +291,27 @@ btn.addEventListener('click', () => {{
     btn.disabled = true;
     status.textContent = '';
 
-    const extra = (5 + Math.random() * 3) * 2 * Math.PI; // 5–8 full rotations
-    const randomSlice = Math.floor(Math.random() * N);
-    // Land pointer (top = -π/2) squarely in the middle of winning slice
-    const targetAngle = -Math.PI / 2 - (randomSlice * sliceAngle + sliceAngle / 2);
-    const normalizedTarget = ((targetAngle % (2 * Math.PI)) + 2 * Math.PI) % (2 * Math.PI);
-    const totalSpin = extra + normalizedTarget - ((rotation % (2 * Math.PI)) + 2 * Math.PI) % (2 * Math.PI);
+    // 1. Pre-pick the winner
+    const winnerIdx = Math.floor(Math.random() * N);
 
-    const duration = 6000;
+    // 2. The pointer sits at the TOP of the canvas = -π/2 in canvas coords.
+    //    Segment i occupies [i*sliceAngle, (i+1)*sliceAngle] + rotation.
+    //    We want the midpoint of segment winnerIdx to sit at -π/2.
+    //    So we need:  winnerIdx*sliceAngle + sliceAngle/2 + targetRot = -π/2  (mod 2π)
+    //    => targetRot = -π/2 - winnerIdx*sliceAngle - sliceAngle/2
+    const targetRot = -Math.PI / 2 - (winnerIdx * sliceAngle + sliceAngle / 2);
+
+    // 3. Bring targetRot to same mod-2π neighbourhood as current rotation,
+    //    then add at least 6 full extra spins so it always looks dramatic.
+    const currentMod = rotation % (2 * Math.PI);
+    let targetMod = ((targetRot % (2 * Math.PI)) + 2 * Math.PI) % (2 * Math.PI);
+    // How far to spin from current mod position to target mod (always forward)
+    let delta = targetMod - currentMod;
+    if (delta <= 0) delta += 2 * Math.PI;          // always spin forward
+    const extraSpins = (6 + Math.floor(Math.random() * 3)) * 2 * Math.PI;
+    const totalSpin = extraSpins + delta;
+
+    const duration = 6500;
     const startRot = rotation;
     let startTime = null;
 
@@ -313,10 +326,8 @@ btn.addEventListener('click', () => {{
             animId = requestAnimationFrame(frame);
         }} else {{
             btn.disabled = false;
-            // Determine winner
-            const norm = ((-(rotation) % (2 * Math.PI)) + 2 * Math.PI) % (2 * Math.PI);
-            const winIdx = Math.floor(norm / sliceAngle) % N;
-            status.textContent = '🏆 ' + prizes[winIdx].label;
+            // Winner was pre-determined — display directly, no recalculation
+            status.textContent = '🏆 ' + prizes[winnerIdx].label;
         }}
     }}
 
