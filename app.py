@@ -6,8 +6,19 @@ import json
 from datetime import datetime
 import streamlit.components.v1 as components
 
-# --- PAGE CONFIG ---
-st.set_page_config(page_title="Skyluxe Exclusive", page_icon="🏢", layout="centered")
+# Prize data with ultra-premium color palette - 8 segments
+prizes = [
+    {"label": "AIRPODS APPLE", "img": "🎧", "color": "#0a0a0a", "accent": "#C9A84C", "text": "#C9A84C"},
+    {"label": "BETTER LUCK",   "img": "🍀", "color": "#1C1C1E", "accent": "#8E8E93", "text": "#E5E5EA"},
+    {"label": "SPIN AGAIN",    "img": "🔄", "color": "#101010", "accent": "#C9A84C", "text": "#C9A84C"},
+    {"label": "IPAD APPLE",    "img": "📱", "color": "#1C1C1E", "accent": "#8E8E93", "text": "#E5E5EA"},
+    {"label": "REFRIGERATOR",  "img": "🧊", "color": "#0a0a0a", "accent": "#C9A84C", "text": "#C9A84C"},
+    {"label": "BETTER LUCK",   "img": "✨", "color": "#1C1C1E", "accent": "#8E8E93", "text": "#E5E5EA"},
+    {"label": "SPIN AGAIN",    "img": "🔄", "color": "#101010", "accent": "#C9A84C", "text": "#C9A84C"},
+    {"label": "SPLIT AC",      "img": "❄️", "color": "#1C1C1E", "accent": "#8E8E93", "text": "#E5E5EA"},
+]
+
+st.set_page_config(page_title="SKYLUXE — Wheel of Fortune", layout="centered")
 
 # --- PREMIUM LUXURY CSS ---
 st.markdown("""
@@ -53,6 +64,12 @@ st.markdown("""
         text-transform: uppercase !important;
     }
     </style>
+
+    <div class="skuluxe-header">
+        <div class="skuluxe-title">SKYLUXE</div>
+        <div class="skuluxe-sub">Wheel of Fortune</div>
+        <div class="skuluxe-divider"></div>
+    </div>
 """, unsafe_allow_html=True)
 
 # ---- UTILS ----
