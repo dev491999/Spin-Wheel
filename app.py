@@ -2,130 +2,166 @@ import streamlit as st
 import streamlit.components.v1 as components
 import json
 
-# Prize data from your design
+# Prize data with the same UI logic but updated vibrant premium colors
 prizes = [
-    {"label": "Apple Airpods", "icon": "🎧", "color": "#FF5F6D"},
-    {"label": "BETTER LUCK", "icon": "❌", "color": "#FFC371"},
-    {"label": "SPIN AGAIN", "icon": "🔄", "color": "#48c6ef"},
-    {"label": "APPLE IPAD", "icon": "📱", "color": "#6f86d6"},
-    {"label": "REFRIGERATOR", "icon": "❄️", "color": "#2af598"},
-    {"label": "Split AC", "icon": "💨", "color": "#f093fb"},
-    {"label": "BETTER LUCK", "icon": "❌", "color": "#f5576c"}
+    {"label": "AIRPODS APPLE", "img": "🎧", "color": "#2c3e50", "text": "#ffffff"}, # Midnight Slate
+    {"label": "BETTER LUCK", "img": "🍀", "color": "#d4af37", "text": "#000000"},    # Metallic Gold
+    {"label": "SPIN AGAIN", "img": "🔄", "color": "#27ae60", "text": "#ffffff"},    # Emerald Green
+    {"label": "IPAD APPLE", "img": "📱", "color": "#2980b9", "text": "#ffffff"},    # Royal Blue
+    {"label": "REFRIGERATOR", "img": "🧊", "color": "#d4af37", "text": "#000000"}, # Metallic Gold
+    {"label": "AIR CONDITIONER", "img": "❄️", "color": "#8e44ad", "text": "#ffffff"}, # Royal Purple
+    {"label": "BETTER LUCK", "img": "✨", "color": "#c0392b", "text": "#ffffff"}     # Deep Ruby
 ]
 
-st.set_page_config(page_title="Premium Spin Wheel", layout="centered")
+st.set_page_config(page_title="Premium Rewards", layout="centered")
+
+# App Styling
+st.markdown("""
+    <style>
+    #MainMenu {visibility: hidden;}
+    footer {visibility: hidden;}
+    header {visibility: hidden;}
+    .stApp {background-color: #0e1117;}
+    </style>
+""", unsafe_allow_html=True)
 
 wheel_html = f"""
-<div id="wrapper" style="display: flex; flex-direction: column; align-items: center; background: #f0f2f6; padding: 40px; border-radius: 20px;">
+<div id="app-container" style="background: radial-gradient(circle, #1c2833 0%, #000000 100%); padding: 40px; border-radius: 20px; display: flex; flex-direction: column; align-items: center; box-shadow: 0 20px 50px rgba(0,0,0,0.7);">
     
     <div id="pointer" style="
-        width: 0; height: 0; 
-        border-left: 20px solid transparent; 
-        border-right: 20px solid transparent; 
-        border-top: 35px solid #d00000; 
-        z-index: 100; margin-bottom: -15px;
-        filter: drop-shadow(0 4px 4px rgba(0,0,0,0.2));
+        position: relative; z-index: 10;
+        width: 40px; height: 40px; 
+        background: #ffffff; clip-path: polygon(50% 100%, 0 0, 100% 0);
+        filter: drop-shadow(0 0 10px rgba(255,255,255,0.5));
+        margin-bottom: -15px;
     "></div>
 
-    <div id="wheel-container" style="position: relative; width: 500px; height: 500px; border: 12px solid #333; border-radius: 50%; box-shadow: 0 15px 35px rgba(0,0,0,0.2);">
-        <svg id="wheel-svg" viewBox="0 0 500 500" style="width: 100%; height: 100%; transition: transform 7s cubic-bezier(0.1, 0, 0, 1);">
-            <g id="wheel-group"></g>
-        </svg>
-        <div style="position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); width: 70px; height: 70px; background: white; border-radius: 50%; border: 5px solid #333; display: flex; align-items: center; justify-content: center; font-size: 28px; box-shadow: 0 4px 10px rgba(0,0,0,0.3);">🎁</div>
+    <div id="wheel-case" style="
+        padding: 15px; background: linear-gradient(145deg, #d4af37, #8a6d3b); 
+        border-radius: 50%; box-shadow: inset 0 0 20px rgba(0,0,0,0.8), 0 10px 30px rgba(0,0,0,0.6);
+    ">
+        <canvas id="wheel" width="500" height="500" style="border-radius: 50%;"></canvas>
     </div>
 
     <button id="spin-btn" style="
-        margin-top: 40px; padding: 18px 70px; 
-        font-size: 24px; font-weight: 800; 
-        background: linear-gradient(135deg, #1e1e1e, #444); 
-        color: white; border: none; border-radius: 50px; 
-        cursor: pointer; box-shadow: 0 8px 15px rgba(0,0,0,0.2);
-        transition: 0.3s;
-    ">SPIN NOW</button>
-    
-    <h2 id="winner-text" style="margin-top: 25px; font-family: sans-serif; color: #333; height: 40px; letter-spacing: 1px;"></h2>
+        margin-top: 40px; padding: 15px 60px; font-size: 24px; font-weight: 900;
+        text-transform: uppercase; letter-spacing: 2px;
+        background: linear-gradient(to right, #d4af37, #f7e681);
+        border: none; border-radius: 50px; cursor: pointer;
+        color: #000; box-shadow: 0 10px 20px rgba(0,0,0,0.4);
+        transition: all 0.2s ease;
+    ">Spin to Win</button>
+
+    <h1 id="status" style="color: #d4af37; font-family: 'Georgia', serif; margin-top: 30px; letter-spacing: 1px; min-height: 50px; text-align: center;"></h1>
 </div>
 
 <script>
 const prizes = {json.dumps(prizes)};
-const wheelGroup = document.getElementById('wheel-group');
-const svg = document.getElementById('wheel-svg');
+const canvas = document.getElementById('wheel');
+const ctx = canvas.getContext('2d');
 const btn = document.getElementById('spin-btn');
-const winnerDisplay = document.getElementById('winner-text');
+const status = document.getElementById('status');
 
-const numSlices = prizes.length;
-const sliceDeg = 360 / numSlices;
+const centerX = 250;
+const centerY = 250;
+const radius = 250;
+const sliceAngle = (2 * Math.PI) / prizes.length;
 
-prizes.forEach((p, i) => {{
-    const startAngle = i * sliceDeg;
-    const endAngle = (i + 1) * sliceDeg;
-    const rad = 250;
+let currentRotation = 0;
+
+function drawWheel() {{
+    ctx.clearRect(0,0,500,500);
     
-    // 1. Draw Slice
-    const x1 = 250 + rad * Math.cos(Math.PI * startAngle / 180);
-    const y1 = 250 + rad * Math.sin(Math.PI * startAngle / 180);
-    const x2 = 250 + rad * Math.cos(Math.PI * endAngle / 180);
-    const y2 = 250 + rad * Math.sin(Math.PI * endAngle / 180);
-    const pathData = `M 250 250 L ${{x1}} ${{y1}} A 250 250 0 0 1 ${{x2}} ${{y2}} Z`;
-    
-    const path = document.createElementNS("http://www.w3.org/2000/svg", "path");
-    path.setAttribute("d", pathData);
-    path.setAttribute("fill", p.color);
-    path.setAttribute("stroke", "#fff");
-    path.setAttribute("stroke-width", "2");
-    wheelGroup.appendChild(path);
+    prizes.forEach((p, i) => {{
+        const angle = i * sliceAngle + currentRotation;
+        
+        // Premium 3D Slice Gradient
+        const grad = ctx.createRadialGradient(centerX, centerY, 0, centerX, centerY, radius);
+        grad.addColorStop(0, p.color);
+        grad.addColorStop(0.8, p.color);
+        grad.addColorStop(1, "#000000"); // Depth effect at edge
+        
+        ctx.beginPath();
+        ctx.fillStyle = grad;
+        ctx.moveTo(centerX, centerY);
+        ctx.arc(centerX, centerY, radius, angle, angle + sliceAngle);
+        ctx.fill();
+        ctx.strokeStyle = "rgba(255,255,255,0.1)";
+        ctx.lineWidth = 2;
+        ctx.stroke();
 
-    // 2. Create Curved Text Path (Proper Wrapping)
-    const textPathId = 'tpath' + i;
-    const tPath = document.createElementNS("http://www.w3.org/2000/svg", "path");
-    // Define an invisible arc for text to sit on (radius 190)
-    const tx1 = 250 + 190 * Math.cos(Math.PI * startAngle / 180);
-    const ty1 = 250 + 190 * Math.sin(Math.PI * startAngle / 180);
-    const tx2 = 250 + 190 * Math.cos(Math.PI * endAngle / 180);
-    const ty2 = 250 + 190 * Math.sin(Math.PI * endAngle / 180);
-    tPath.setAttribute("id", textPathId);
-    tPath.setAttribute("d", `M ${{tx1}} ${{ty1}} A 190 190 0 0 1 ${{tx2}} ${{ty2}}`);
-    tPath.setAttribute("fill", "none");
-    wheelGroup.appendChild(tPath);
+        // Optimized Text Placement
+        ctx.save();
+        ctx.translate(centerX, centerY);
+        ctx.rotate(angle + sliceAngle / 2);
+        ctx.textAlign = "right";
+        ctx.fillStyle = p.text;
+        
+        // Draw Label
+        ctx.font = "bold 16px sans-serif";
+        ctx.shadowBlur = 4;
+        ctx.shadowColor = "rgba(0,0,0,0.8)";
+        ctx.fillText(p.label, radius - 70, 8);
+        
+        // Draw Icon
+        ctx.font = "28px Arial";
+        ctx.fillText(p.img, radius - 25, 12);
+        ctx.restore();
+    }});
 
-    // 3. Add Text and Icon
-    const text = document.createElementNS("http://www.w3.org/2000/svg", "text");
-    const tPathElement = document.createElementNS("http://www.w3.org/2000/svg", "textPath");
-    tPathElement.setAttributeNS("http://www.w3.org/1999/xlink", "xlink:href", "#" + textPathId);
-    tPathElement.setAttribute("startOffset", "50%");
-    tPathElement.setAttribute("text-anchor", "middle");
-    tPathElement.setAttribute("fill", "white");
-    tPathElement.style.fontSize = "14px";
-    tPathElement.style.fontWeight = "bold";
-    tPathElement.textContent = p.icon + " " + p.label;
-    
-    text.appendChild(tPathElement);
-    wheelGroup.appendChild(text);
-}});
+    // Center Decorative Hub
+    ctx.beginPath();
+    ctx.arc(centerX, centerY, 35, 0, 2*Math.PI);
+    ctx.fillStyle = "#222";
+    ctx.fill();
+    ctx.strokeStyle = "#d4af37";
+    ctx.lineWidth = 4;
+    ctx.stroke();
+    ctx.fillStyle = "#d4af37";
+    ctx.font = "20px Arial";
+    ctx.textAlign = "center";
+    ctx.fillText("🎁", centerX, centerY + 7);
+}}
 
-let rotation = 0;
-
-btn.addEventListener('click', () => {{
+btn.onclick = () => {{
     if(btn.disabled) return;
     btn.disabled = true;
-    winnerDisplay.innerText = "Processing Your Fortune...";
+    btn.style.opacity = "0.5";
+    status.innerText = "⭐ GOOD LUCK ⭐";
     
-    // Calculate a massive spin (10-15 rotations) + random landing
-    const extraSpins = 3600 + Math.floor(Math.random() * 360);
-    rotation += extraSpins;
-    
-    // GPU Accelerated Animation
-    svg.style.transform = `rotate(${{rotation}}deg)`;
+    const spins = 8 + Math.random() * 5; 
+    const totalRotation = spins * 2 * Math.PI;
+    const duration = 7000; 
+    const start = performance.now();
+    const initialRotation = currentRotation;
 
-    setTimeout(() => {{
-        btn.disabled = false;
-        const actualDeg = rotation % 360;
-        // Logic to find winner at the 12 o'clock position (270 degrees)
-        const winningIndex = Math.floor(((270 - actualDeg + 360) % 360) / sliceDeg);
-        winnerDisplay.innerText = "🏆 WINNER: " + prizes[winningIndex].label + " 🏆";
-    }}, 7100);
-}});
+    function animate(now) {{
+        const elapsed = now - start;
+        const t = Math.min(elapsed / duration, 1);
+        
+        // Smooth Cubic Easing
+        const easeOut = 1 - Math.pow(1 - t, 4);
+        
+        currentRotation = initialRotation + (totalRotation * easeOut);
+        drawWheel();
+
+        if (t < 1) {{
+            requestAnimationFrame(animate);
+        }} else {{
+            btn.disabled = false;
+            btn.style.opacity = "1";
+            
+            const normalized = (currentRotation % (2 * Math.PI));
+            // Calculating winning slice relative to 12 o'clock pointer
+            const winningIndex = Math.floor(((1.5 * Math.PI - normalized + (10 * Math.PI)) % (2 * Math.PI)) / sliceAngle);
+            status.innerHTML = "🏆 WINNER: " + prizes[winningIndex].label;
+        }}
+    }}
+    requestAnimationFrame(animate);
+}};
+
+drawWheel();
 </script>
 """
 
-components.html(wheel_html, height=800)
+components.html(wheel_html, height=850)
