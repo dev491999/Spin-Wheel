@@ -4,17 +4,17 @@ import json
 
 # Prize data with ultra-premium color palette - 8 segments
 prizes = [
-    {"label": "APPLE AIRPODS", "img": "🎧", "color": "#0a0a0a", "accent": "#C9A84C", "text": "#C9A84C"},
-    {"label": "BETTER LUCK",   "img": "✨", "color": "#1C1C1E", "accent": "#8E8E93", "text": "#E5E5EA"},
+    {"label": "AIRPODS APPLE", "img": "🎧", "color": "#0a0a0a", "accent": "#C9A84C", "text": "#C9A84C"},
+    {"label": "BETTER LUCK",   "img": "🍀", "color": "#1C1C1E", "accent": "#8E8E93", "text": "#E5E5EA"},
     {"label": "SPIN AGAIN",    "img": "🔄", "color": "#101010", "accent": "#C9A84C", "text": "#C9A84C"},
-    {"label": "APPLE IPAD",    "img": "📱", "color": "#1C1C1E", "accent": "#8E8E93", "text": "#E5E5EA"},
+    {"label": "IPAD APPLE",    "img": "📱", "color": "#1C1C1E", "accent": "#8E8E93", "text": "#E5E5EA"},
     {"label": "REFRIGERATOR",  "img": "🧊", "color": "#0a0a0a", "accent": "#C9A84C", "text": "#C9A84C"},
     {"label": "BETTER LUCK",   "img": "✨", "color": "#1C1C1E", "accent": "#8E8E93", "text": "#E5E5EA"},
     {"label": "SPIN AGAIN",    "img": "🔄", "color": "#101010", "accent": "#C9A84C", "text": "#C9A84C"},
     {"label": "SPLIT AC",      "img": "❄️", "color": "#1C1C1E", "accent": "#8E8E93", "text": "#E5E5EA"},
 ]
 
-st.set_page_config(page_title="SKYLUXE — Wheel of Fortune", layout="centered")
+st.set_page_config(page_title="SKULUXE — Wheel of Fortune", layout="centered")
 
 st.markdown("""
     <style>
@@ -24,12 +24,12 @@ st.markdown("""
     header {visibility: hidden;}
     .stApp {background: #000000;}
 
-    .-header {
+    .skuluxe-header {
         text-align: center;
         padding: 36px 0 8px 0;
         letter-spacing: 0.22em;
     }
-    .skyluxe-title {
+    .skuluxe-title {
         font-family: 'Playfair Display', serif;
         font-size: 52px;
         font-weight: 900;
@@ -38,7 +38,7 @@ st.markdown("""
         text-shadow: 0 0 40px rgba(201,168,76,0.3);
         margin: 0;
     }
-    .skyluxe-sub {
+    .skuluxe-sub {
         font-family: 'Cormorant Garamond', serif;
         font-size: 18px;
         font-weight: 300;
@@ -48,7 +48,7 @@ st.markdown("""
         margin-top: 6px;
         text-transform: uppercase;
     }
-    .skyluxe-divider {
+    .skuluxe-divider {
         width: 120px;
         height: 1px;
         background: linear-gradient(to right, transparent, #C9A84C, transparent);
@@ -56,10 +56,10 @@ st.markdown("""
     }
     </style>
 
-    <div class="skyluxe-header">
-        <div class="skyluxe-title">SKYLUXE</div>
-        <div class="skyluxe-sub">Wheel of Fortune</div>
-        <div class="skyluxe-divider"></div>
+    <div class="skuluxe-header">
+        <div class="skuluxe-title">SKULUXE</div>
+        <div class="skuluxe-sub">Wheel of Fortune</div>
+        <div class="skuluxe-divider"></div>
     </div>
 """, unsafe_allow_html=True)
 
