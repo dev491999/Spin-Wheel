@@ -2,216 +2,330 @@ import streamlit as st
 import streamlit.components.v1 as components
 import json
 
-# Prize data with vibrant jewel-tone colors — each slice is distinct
+# Prize data with ultra-premium color palette
 prizes = [
-    {"label": "AIRPODS APPLE",   "img": "🎧", "color": "#E63946", "text": "#ffffff"},  # Crimson Red
-    {"label": "BETTER LUCK",     "img": "🍀", "color": "#2EC4B6", "text": "#ffffff"},  # Teal
-    {"label": "SPIN AGAIN",      "img": "🔄", "color": "#FF9F1C", "text": "#000000"},  # Amber
-    {"label": "IPAD APPLE",      "img": "📱", "color": "#6A4C93", "text": "#ffffff"},  # Violet
-    {"label": "REFRIGERATOR",    "img": "🧊", "color": "#1982C4", "text": "#ffffff"},  # Sapphire Blue
-    {"label": "AIR CONDITIONER", "img": "❄️", "color": "#8AC926", "text": "#000000"},  # Lime Green
-    {"label": "BETTER LUCK",     "img": "✨", "color": "#FF595E", "text": "#ffffff"},  # Coral
+    {"label": "AIRPODS APPLE", "img": "🎧", "color": "#0a0a0a", "accent": "#C9A84C", "text": "#C9A84C"},
+    {"label": "BETTER LUCK",   "img": "🍀", "color": "#1C1C1E", "accent": "#8E8E93", "text": "#E5E5EA"},
+    {"label": "SPIN AGAIN",    "img": "🔄", "color": "#101010", "accent": "#C9A84C", "text": "#C9A84C"},
+    {"label": "IPAD APPLE",    "img": "📱", "color": "#1C1C1E", "accent": "#8E8E93", "text": "#E5E5EA"},
+    {"label": "REFRIGERATOR",  "img": "🧊", "color": "#0a0a0a", "accent": "#C9A84C", "text": "#C9A84C"},
+    {"label": "AIR CONDITIONER","img": "❄️","color": "#1C1C1E", "accent": "#8E8E93", "text": "#E5E5EA"},
+    {"label": "BETTER LUCK",   "img": "✨", "color": "#101010", "accent": "#C9A84C", "text": "#C9A84C"},
 ]
 
-st.set_page_config(page_title="Premium Rewards", layout="centered")
+st.set_page_config(page_title="SKULUXE — Wheel of Fortune", layout="centered")
 
 st.markdown("""
     <style>
+    @import url('https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700;900&family=Cormorant+Garamond:ital,wght@0,300;0,600;1,300&display=swap');
     #MainMenu {visibility: hidden;}
     footer {visibility: hidden;}
     header {visibility: hidden;}
-    .stApp {background-color: #0d0d0d;}
+    .stApp {background: #000000;}
+
+    .skuluxe-header {
+        text-align: center;
+        padding: 36px 0 8px 0;
+        letter-spacing: 0.22em;
+    }
+    .skuluxe-title {
+        font-family: 'Playfair Display', serif;
+        font-size: 52px;
+        font-weight: 900;
+        color: #C9A84C;
+        line-height: 1;
+        text-shadow: 0 0 40px rgba(201,168,76,0.3);
+        margin: 0;
+    }
+    .skuluxe-sub {
+        font-family: 'Cormorant Garamond', serif;
+        font-size: 18px;
+        font-weight: 300;
+        font-style: italic;
+        color: #8E8E93;
+        letter-spacing: 0.35em;
+        margin-top: 6px;
+        text-transform: uppercase;
+    }
+    .skuluxe-divider {
+        width: 120px;
+        height: 1px;
+        background: linear-gradient(to right, transparent, #C9A84C, transparent);
+        margin: 14px auto 0 auto;
+    }
     </style>
+
+    <div class="skuluxe-header">
+        <div class="skuluxe-title">SKULUXE</div>
+        <div class="skuluxe-sub">Wheel of Fortune</div>
+        <div class="skuluxe-divider"></div>
+    </div>
 """, unsafe_allow_html=True)
 
 wheel_html = f"""
-<div id="app-container" style="
-    background: radial-gradient(circle at 50% 30%, #1a1a2e 0%, #0d0d0d 100%);
-    padding: 40px 20px; border-radius: 24px; display: flex; flex-direction: column;
-    align-items: center; box-shadow: 0 30px 80px rgba(0,0,0,0.7);
-    font-family: 'Segoe UI', sans-serif;
-">
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700;900&family=Cormorant+Garamond:ital,wght@0,300;1,300&display=swap');
 
-    <!-- Pointer -->
-    <div style="
-        position: relative; z-index: 10;
-        width: 0; height: 0;
-        border-left: 16px solid transparent;
-        border-right: 16px solid transparent;
-        border-top: 36px solid #ff2d55;
-        filter: drop-shadow(0 4px 8px rgba(255,45,85,0.7));
-        margin-bottom: -14px;
-    "></div>
+* {{ box-sizing: border-box; margin: 0; padding: 0; }}
 
-    <!-- Wheel ring -->
-    <div style="
-        padding: 12px;
-        background: conic-gradient(#d4af37, #f7e681, #d4af37, #8a6d3b, #d4af37);
-        border-radius: 50%;
-        box-shadow: 0 0 40px rgba(212,175,55,0.4), inset 0 0 15px rgba(0,0,0,0.6);
-    ">
-        <canvas id="wheel" width="460" height="460" style="border-radius: 50%; display: block;"></canvas>
+#app-container {{
+    background: radial-gradient(ellipse at 50% 0%, #1a1208 0%, #000000 65%);
+    padding: 40px 20px 50px;
+    border-radius: 24px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    border: 1px solid #2a2007;
+}}
+
+#pointer-wrap {{
+    position: relative;
+    z-index: 10;
+    margin-bottom: -18px;
+    filter: drop-shadow(0 6px 18px rgba(201,168,76,0.5));
+}}
+#pointer-wrap svg {{ display: block; }}
+
+#wheel-ring {{
+    padding: 12px;
+    background: conic-gradient(#C9A84C 0deg, #8a6520 90deg, #C9A84C 180deg, #8a6520 270deg, #C9A84C 360deg);
+    border-radius: 50%;
+    box-shadow:
+        0 0 0 2px #3a2800,
+        0 10px 50px rgba(0,0,0,0.9),
+        0 0 60px rgba(201,168,76,0.08);
+    will-change: transform;
+}}
+
+canvas {{
+    border-radius: 50%;
+    display: block;
+    will-change: transform;
+}}
+
+#spin-btn {{
+    margin-top: 44px;
+    padding: 16px 64px;
+    font-family: 'Playfair Display', serif;
+    font-size: 20px;
+    font-weight: 700;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    background: linear-gradient(135deg, #C9A84C 0%, #f0d880 50%, #C9A84C 100%);
+    border: none;
+    border-radius: 60px;
+    cursor: pointer;
+    color: #000;
+    box-shadow: 0 8px 30px rgba(201,168,76,0.35), inset 0 1px 0 rgba(255,255,255,0.3);
+    transition: transform 0.15s ease, box-shadow 0.15s ease, opacity 0.15s ease;
+}}
+#spin-btn:hover:not(:disabled) {{
+    transform: translateY(-2px);
+    box-shadow: 0 14px 40px rgba(201,168,76,0.5), inset 0 1px 0 rgba(255,255,255,0.3);
+}}
+#spin-btn:disabled {{
+    opacity: 0.5;
+    cursor: not-allowed;
+    transform: none;
+}}
+
+#status {{
+    font-family: 'Playfair Display', serif;
+    font-size: 26px;
+    font-weight: 700;
+    color: #C9A84C;
+    letter-spacing: 0.08em;
+    margin-top: 32px;
+    min-height: 40px;
+    text-align: center;
+    text-shadow: 0 0 30px rgba(201,168,76,0.4);
+    transition: opacity 0.3s ease;
+}}
+</style>
+
+<div id="app-container">
+    <div id="pointer-wrap">
+        <svg width="44" height="44" viewBox="0 0 44 44" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <polygon points="22,44 4,4 40,4" fill="#C9A84C"/>
+            <polygon points="22,44 4,4 40,4" fill="url(#pg)" opacity="0.6"/>
+            <defs>
+                <linearGradient id="pg" x1="4" y1="4" x2="40" y2="44" gradientUnits="userSpaceOnUse">
+                    <stop offset="0" stop-color="#fff" stop-opacity="0.5"/>
+                    <stop offset="1" stop-color="#000" stop-opacity="0"/>
+                </linearGradient>
+            </defs>
+        </svg>
     </div>
 
-    <!-- Spin button -->
-    <button id="spin-btn" onclick="spinWheel()" style="
-        margin-top: 36px; padding: 14px 56px; font-size: 22px; font-weight: 800;
-        text-transform: uppercase; letter-spacing: 3px;
-        background: linear-gradient(135deg, #d4af37 0%, #f7e681 50%, #d4af37 100%);
-        border: none; border-radius: 50px; cursor: pointer; color: #0d0d0d;
-        box-shadow: 0 8px 25px rgba(212,175,55,0.5);
-        transition: transform 0.15s ease, box-shadow 0.15s ease;
-    "
-    onmouseover="this.style.transform='scale(1.05)'; this.style.boxShadow='0 12px 35px rgba(212,175,55,0.7)'"
-    onmouseout="this.style.transform='scale(1)'; this.style.boxShadow='0 8px 25px rgba(212,175,55,0.5)'"
-    >
-        🎰 Spin to Win
-    </button>
+    <div id="wheel-ring">
+        <canvas id="wheel" width="480" height="480"></canvas>
+    </div>
 
-    <div id="status" style="
-        color: #f7e681; font-size: 26px; font-weight: 700;
-        margin-top: 28px; letter-spacing: 1px; min-height: 44px;
-        text-shadow: 0 0 20px rgba(247,230,129,0.6);
-        transition: opacity 0.3s;
-    "></div>
+    <button id="spin-btn">Spin to Win</button>
+    <div id="status"></div>
 </div>
 
 <script>
 const prizes = {json.dumps(prizes)};
 const canvas = document.getElementById('wheel');
 const ctx = canvas.getContext('2d');
+const btn = document.getElementById('spin-btn');
+const status = document.getElementById('status');
 
-const CX = 230, CY = 230, R = 228;
-const sliceAngle = (2 * Math.PI) / prizes.length;
+const W = 480, CX = 240, CY = 240, R = 238;
+const N = prizes.length;
+const sliceAngle = (2 * Math.PI) / N;
 
-let currentRotation = 0;
-let spinning = false;
+// Premium segment colors — alternating deep palettes
+const segColors = [
+    {{ bg: '#0D0D0D', rim: '#C9A84C' }},
+    {{ bg: '#161610', rim: '#6B6B6B' }},
+    {{ bg: '#0D0D0D', rim: '#C9A84C' }},
+    {{ bg: '#161610', rim: '#6B6B6B' }},
+    {{ bg: '#0D0D0D', rim: '#C9A84C' }},
+    {{ bg: '#161610', rim: '#6B6B6B' }},
+    {{ bg: '#0D0D0D', rim: '#C9A84C' }},
+];
 
-// Pre-compute border colors (slightly lighter/darker variant per slice)
-function lighten(hex, pct) {{
-    let n = parseInt(hex.slice(1), 16);
-    let r = Math.min(255, (n >> 16) + pct);
-    let g = Math.min(255, ((n >> 8) & 0xff) + pct);
-    let b = Math.min(255, (n & 0xff) + pct);
-    return `rgb(${{r}},${{g}},${{b}})`;
-}}
+let rotation = 0;
+let animId = null;
 
-function drawWheel() {{
-    ctx.clearRect(0, 0, 460, 460);
+function drawWheel(rot) {{
+    ctx.clearRect(0, 0, W, W);
 
-    // Draw slices — flat color, no per-frame gradients
-    prizes.forEach((p, i) => {{
-        const startA = i * sliceAngle + currentRotation;
-        const endA   = startA + sliceAngle;
+    for (let i = 0; i < N; i++) {{
+        const startA = i * sliceAngle + rot;
+        const endA = startA + sliceAngle;
+        const mid = startA + sliceAngle / 2;
+        const sc = segColors[i % segColors.length];
+        const p = prizes[i];
+
+        // Segment fill
+        const grad = ctx.createRadialGradient(CX, CY, 20, CX, CY, R);
+        grad.addColorStop(0, lighten(sc.bg, 0.12));
+        grad.addColorStop(1, sc.bg);
 
         ctx.beginPath();
         ctx.moveTo(CX, CY);
         ctx.arc(CX, CY, R, startA, endA);
         ctx.closePath();
-        ctx.fillStyle = p.color;
+        ctx.fillStyle = grad;
         ctx.fill();
 
-        // Thin separator line
-        ctx.strokeStyle = "rgba(0,0,0,0.35)";
-        ctx.lineWidth = 2;
+        // Rim line
+        ctx.beginPath();
+        ctx.moveTo(CX, CY);
+        ctx.arc(CX, CY, R, startA, endA);
+        ctx.closePath();
+        ctx.strokeStyle = sc.rim;
+        ctx.lineWidth = 1.5;
         ctx.stroke();
-    }});
-
-    // Single radial vignette overlay (drawn once on top — cheap)
-    const vignette = ctx.createRadialGradient(CX, CY, R * 0.55, CX, CY, R);
-    vignette.addColorStop(0, "rgba(0,0,0,0)");
-    vignette.addColorStop(1, "rgba(0,0,0,0.28)");
-    ctx.beginPath();
-    ctx.arc(CX, CY, R, 0, 2 * Math.PI);
-    ctx.fillStyle = vignette;
-    ctx.fill();
-
-    // Labels
-    prizes.forEach((p, i) => {{
-        const midA = i * sliceAngle + currentRotation + sliceAngle / 2;
-        ctx.save();
-        ctx.translate(CX, CY);
-        ctx.rotate(midA);
-
-        // Icon
-        ctx.font = "28px Arial";
-        ctx.textAlign = "center";
-        ctx.fillText(p.img, R - 32, 6);
 
         // Label
-        ctx.font = "bold 15px Arial";
-        ctx.fillStyle = p.text;
-        ctx.shadowColor = "rgba(0,0,0,0.6)";
-        ctx.shadowBlur = 4;
-        ctx.textAlign = "right";
-        ctx.fillText(p.label, R - 62, 6);
-        ctx.shadowBlur = 0;
-        ctx.restore();
-    }});
+        ctx.save();
+        ctx.translate(CX, CY);
+        ctx.rotate(mid);
+        ctx.textAlign = 'right';
+        ctx.shadowBlur = 8;
+        ctx.shadowColor = 'rgba(0,0,0,0.8)';
 
-    // Center hub
-    const hubGrad = ctx.createRadialGradient(CX - 6, CY - 6, 2, CX, CY, 28);
-    hubGrad.addColorStop(0, "#f7e681");
-    hubGrad.addColorStop(1, "#8a6d3b");
+        ctx.font = 'bold 15px "Arial Narrow", Arial, sans-serif';
+        ctx.letterSpacing = '1px';
+        ctx.fillStyle = p.text;
+        ctx.fillText(p.label, R - 52, 5);
+
+        ctx.font = '22px Arial';
+        ctx.shadowBlur = 0;
+        ctx.fillText(p.img, R - 16, 8);
+        ctx.restore();
+    }}
+
+    // Radial dividers (subtle luxury lines from center)
+    for (let i = 0; i < N; i++) {{
+        const a = i * sliceAngle + rot;
+        ctx.beginPath();
+        ctx.moveTo(CX + Math.cos(a) * 34, CY + Math.sin(a) * 34);
+        ctx.lineTo(CX + Math.cos(a) * R, CY + Math.sin(a) * R);
+        ctx.strokeStyle = 'rgba(201,168,76,0.25)';
+        ctx.lineWidth = 0.8;
+        ctx.stroke();
+    }}
+
+    // Center jewel
+    const cg = ctx.createRadialGradient(CX - 5, CY - 5, 2, CX, CY, 28);
+    cg.addColorStop(0, '#f0d880');
+    cg.addColorStop(0.5, '#C9A84C');
+    cg.addColorStop(1, '#5c3d00');
+
     ctx.beginPath();
     ctx.arc(CX, CY, 28, 0, 2 * Math.PI);
-    ctx.fillStyle = hubGrad;
+    ctx.fillStyle = cg;
     ctx.fill();
-    ctx.strokeStyle = "#000";
+    ctx.strokeStyle = '#2a1800';
     ctx.lineWidth = 2;
+    ctx.stroke();
+
+    // Inner ring on jewel
+    ctx.beginPath();
+    ctx.arc(CX, CY, 20, 0, 2 * Math.PI);
+    ctx.strokeStyle = 'rgba(255,255,255,0.15)';
+    ctx.lineWidth = 1;
     ctx.stroke();
 }}
 
-function spinWheel() {{
-    if (spinning) return;
-    spinning = true;
+function lighten(hex, amt) {{
+    const n = parseInt(hex.slice(1), 16);
+    const r = Math.min(255, (n >> 16) + Math.round(amt * 255));
+    const g = Math.min(255, ((n >> 8) & 0xff) + Math.round(amt * 255));
+    const b = Math.min(255, (n & 0xff) + Math.round(amt * 255));
+    return `rgb(${{r}},${{g}},${{b}})`;
+}}
 
-    const btn = document.getElementById('spin-btn');
-    const status = document.getElementById('status');
+// Smooth easing — no lag, uses requestAnimationFrame properly
+function easeOutQuart(t) {{
+    return 1 - Math.pow(1 - t, 4);
+}}
+
+btn.addEventListener('click', () => {{
+    if (btn.disabled) return;
     btn.disabled = true;
-    btn.style.opacity = "0.6";
-    status.style.opacity = "0";
-    status.innerText = "";
+    status.textContent = '';
 
-    // Random extra rotation (10–15 full spins) + random landing offset
-    const extraSpins   = (10 + Math.random() * 5) * 2 * Math.PI;
-    const landingOffset = Math.random() * 2 * Math.PI;
-    const totalRotation = extraSpins + landingOffset;
-    const duration      = 5500; // ms — shorter = snappier, less lag risk
-    const startTime     = performance.now();
-    const startRotation = currentRotation;
+    const extra = (5 + Math.random() * 3) * 2 * Math.PI; // 5–8 full rotations
+    const randomSlice = Math.floor(Math.random() * N);
+    // Land pointer (top = -π/2) squarely in the middle of winning slice
+    const targetAngle = -Math.PI / 2 - (randomSlice * sliceAngle + sliceAngle / 2);
+    const normalizedTarget = ((targetAngle % (2 * Math.PI)) + 2 * Math.PI) % (2 * Math.PI);
+    const totalSpin = extra + normalizedTarget - ((rotation % (2 * Math.PI)) + 2 * Math.PI) % (2 * Math.PI);
 
-    function easeOut(t) {{
-        // Quintic ease-out: smooth deceleration, no lag
-        return 1 - Math.pow(1 - t, 5);
-    }}
+    const duration = 6000;
+    const startRot = rotation;
+    let startTime = null;
 
-    function frame(now) {{
-        const elapsed = now - startTime;
-        const t       = Math.min(elapsed / duration, 1);
-        currentRotation = startRotation + totalRotation * easeOut(t);
-        drawWheel();
+    function frame(ts) {{
+        if (!startTime) startTime = ts;
+        const elapsed = ts - startTime;
+        const t = Math.min(elapsed / duration, 1);
+        rotation = startRot + totalSpin * easeOutQuart(t);
+        drawWheel(rotation);
 
         if (t < 1) {{
-            requestAnimationFrame(frame);
+            animId = requestAnimationFrame(frame);
         }} else {{
-            // Pointer is at top = 270° = 1.5π from canvas 0°
-            const norm = ((currentRotation % (2 * Math.PI)) + 2 * Math.PI) % (2 * Math.PI);
-            const pointerAngle = (1.5 * Math.PI - norm + 4 * Math.PI) % (2 * Math.PI);
-            const idx = Math.floor(pointerAngle / sliceAngle) % prizes.length;
-            status.innerText = "🏆 " + prizes[idx].label;
-            status.style.opacity = "1";
             btn.disabled = false;
-            btn.style.opacity = "1";
-            spinning = false;
+            // Determine winner
+            const norm = ((-(rotation) % (2 * Math.PI)) + 2 * Math.PI) % (2 * Math.PI);
+            const winIdx = Math.floor(norm / sliceAngle) % N;
+            status.textContent = '🏆 ' + prizes[winIdx].label;
         }}
     }}
 
-    requestAnimationFrame(frame);
-}}
+    if (animId) cancelAnimationFrame(animId);
+    animId = requestAnimationFrame(frame);
+}});
 
-drawWheel();
+drawWheel(rotation);
 </script>
 """
 
-components.html(wheel_html, height=820)
+components.html(wheel_html, height=900)
